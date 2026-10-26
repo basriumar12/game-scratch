@@ -2,35 +2,33 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Scratch Coding Adventure 3D</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background: #0f172a; font-family: 'Nunito', sans-serif; }
-    #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-
-    /* TOMBOL PERINGKAT SUPER PRIORITAS (Z-INDEX 999999) */
-    #btnFloatingLeaderboard {
-      position: fixed !important;
-      top: 15px !important;
-      right: 15px !important;
-      z-index: 999999 !important;
-      background: #7c3aed !important;
-      color: #ffffff !important;
-      border: 3px solid #facc15 !important;
-      padding: 12px 20px !important;
-      border-radius: 50px !important;
-      font-family: 'Fredoka One', cursive !important;
-      font-size: 16px !important;
-      cursor: pointer !important;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.6) !important;
-      display: block !important;
-      pointer-events: auto !important;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
-    #btnFloatingLeaderboard:hover {
-      background: #9333ea !important;
-      transform: scale(1.05);
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0f172a;
+      font-family: 'Nunito', sans-serif;
+      touch-action: none;
+    }
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
     }
 
     /* HUD */
@@ -40,196 +38,479 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 100;
+      z-index: 50;
       pointer-events: none;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 15px;
+      padding: 10px;
     }
     .hud-top {
       display: flex;
-      justify-content: flex-start;
-      align-items: flex-start;
-      gap: 10px;
-      max-width: calc(100% - 170px); /* Beri ruang agar tidak tabrakan dengan tombol Top Siswa */
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-left-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
     }
     .hud-panel {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
       border: 2px solid #f59e0b;
-      border-radius: 14px;
-      padding: 8px 14px;
+      border-radius: 12px;
+      padding: 6px 10px;
       color: white;
       pointer-events: auto;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 800;
     }
-    .hud-panel span { color: #facc15; font-family: 'Fredoka One', cursive; font-size: 16px; }
+    .hud-panel span { color: #facc15; font-family: 'Fredoka One', cursive; font-size: 14px; }
+    
+    .btn-icon-menu {
+      background: #3b82f6;
+      color: white;
+      border: 2px solid #93c5fd;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 13px;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 3px 0 #1d4ed8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-icon-menu:active { transform: translateY(2px); box-shadow: 0 1px 0 #1d4ed8; }
 
     .progress-box {
-      width: 120px;
-      height: 10px;
-      background: #334155;
+      width: 70px;
+      height: 8px;
+      background: rgba(0,0,0,0.5);
       border-radius: 6px;
       overflow: hidden;
-      margin-top: 4px;
+      margin-top: 3px;
+      border: 1px solid #22c55e;
     }
     .progress-fill { height: 100%; width: 0%; background: #22c55e; transition: width 0.2s; }
 
     #interaction-hint {
       position: fixed;
-      top: 65%;
+      top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: #f59e0b;
       color: #0f172a;
-      padding: 12px 24px;
+      padding: 10px 18px;
       border-radius: 30px;
       font-weight: 900;
-      font-size: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      font-size: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
       display: none;
-      z-index: 500;
+      z-index: 60;
       cursor: pointer;
       pointer-events: auto;
+      animation: bounce 0.8s infinite alternate ease-in-out;
     }
+    @keyframes bounce { from { transform: translate(-50%, -46%); } to { transform: translate(-50%, -54%); } }
 
     #notif-toast {
       position: fixed;
-      top: 80px;
+      top: 60px;
       left: 50%;
       transform: translateX(-50%);
       background: #10b981;
       color: white;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 20px;
       font-weight: 800;
+      font-size: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
       display: none;
       z-index: 10000;
+      pointer-events: none;
+      text-align: center;
     }
 
-    /* Modals */
+    input, textarea, select {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      touch-action: manipulation !important;
+    }
+
+    /* ========================================================
+       KONTROL SENTUH HP (VIRTUAL JOYSTICK & ACTION BUTTONS)
+    ======================================================== */
+    #mobileControls {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      display: none; /* Muncul hanya saat gameplay berlangsung */
+    }
+
+    /* JOYSTICK ANALOG KIRI */
+    #joystickZone {
+      position: fixed;
+      bottom: 24px;
+      left: 20px;
+      width: 130px;
+      height: 130px;
+      z-index: 101;
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #joystickBase {
+      width: 120px;
+      height: 120px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 3px solid rgba(56, 189, 248, 0.6);
+      backdrop-filter: blur(6px);
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    #joystickBase::before {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 1px dashed rgba(56, 189, 248, 0.4);
+      border-radius: 50%;
+    }
+    #joystickStick {
+      width: 52px;
+      height: 52px;
+      background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7);
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    /* TOMBOL AKSI KANAN BAWAH */
+    #mobileActionZone {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+      z-index: 101;
+      pointer-events: auto;
+      touch-action: none;
+    }
+    .action-touch-btn {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      color: white;
+      font-family: 'Fredoka One', cursive;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      outline: none;
+      transition: transform 0.08s ease;
+    }
+    .action-touch-btn .btn-icon {
+      font-size: 20px;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .action-touch-btn .btn-label {
+      font-size: 10px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+      pointer-events: none;
+    }
+    #btnJump {
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      box-shadow: 0 4px 0 #14532d, 0 6px 16px rgba(0,0,0,0.4);
+    }
+    #btnJump:active, #btnJump.active-touch {
+      transform: translateY(3px) scale(0.94);
+      box-shadow: 0 1px 0 #14532d;
+      filter: brightness(1.15);
+    }
+    #btnInteract {
+      background: linear-gradient(135deg, #f59e0b, #b45309);
+      box-shadow: 0 4px 0 #78350f, 0 6px 16px rgba(0,0,0,0.4);
+    }
+    #btnInteract:active, #btnInteract.active-touch {
+      transform: translateY(3px) scale(0.94);
+      box-shadow: 0 1px 0 #78350f;
+      filter: brightness(1.15);
+    }
+    @keyframes portalAlertGlow {
+      0% { transform: scale(1); box-shadow: 0 0 10px #f59e0b, 0 4px 0 #78350f; }
+      50% { transform: scale(1.1); box-shadow: 0 0 24px #facc15, 0 4px 0 #78350f; border-color: #facc15; }
+      100% { transform: scale(1); box-shadow: 0 0 10px #f59e0b, 0 4px 0 #78350f; }
+    }
+    .btn-portal-active {
+      animation: portalAlertGlow 0.8s infinite alternate ease-in-out !important;
+      border-color: #fef08a !important;
+    }
+
+    @media (max-width: 600px) {
+      .hud-panel { font-size: 10px; padding: 4px 8px; }
+      .hud-panel span { font-size: 12px; }
+      .btn-icon-menu { font-size: 11px; padding: 5px 8px; }
+      #joystickZone { bottom: 16px; left: 14px; width: 110px; height: 110px; }
+      #joystickBase { width: 100px; height: 100px; }
+      #joystickStick { width: 44px; height: 44px; }
+      #mobileActionZone { bottom: 16px; right: 14px; gap: 10px; }
+      .action-touch-btn { width: 60px; height: 60px; }
+      .action-touch-btn .btn-icon { font-size: 18px; }
+      .action-touch-btn .btn-label { font-size: 9px; }
+    }
+
+    /* Modals & Screens */
     .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.88);
-      z-index: 99999;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(6px);
+      z-index: 100000;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 15px;
+      padding: 14px;
     }
     .modal-card {
       background: #1e293b;
       border: 3px solid #f59e0b;
       border-radius: 20px;
       width: 100%;
-      max-width: 500px;
-      padding: 24px;
+      max-width: 480px;
+      padding: 20px;
       color: white;
       text-align: center;
-      max-height: 90vh;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.6);
+      max-height: 85vh;
       overflow-y: auto;
     }
-    .modal-title { font-family: 'Fredoka One', cursive; font-size: 26px; color: #facc15; margin-bottom: 10px; }
+    .modal-title { font-family: 'Fredoka One', cursive; font-size: 24px; color: #facc15; margin-bottom: 8px; }
     .form-group { text-align: left; margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 12px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
     .form-input {
       width: 100%;
       padding: 12px;
       background: #0f172a;
-      border: 2px solid #475569;
-      border-radius: 10px;
+      border: 2px solid #334155;
+      border-radius: 12px;
       color: white;
-      font-size: 15px;
+      font-size: 14px;
       outline: none;
     }
+    .form-input:focus { border-color: #38bdf8; }
+
     .btn {
       background: #f59e0b;
       color: #0f172a;
       border: none;
-      padding: 10px 22px;
+      padding: 12px 18px;
       border-radius: 14px;
       font-family: 'Fredoka One', cursive;
       font-size: 15px;
       cursor: pointer;
+      box-shadow: 0 4px 0 #b45309;
       margin: 4px;
+      display: inline-block;
+      transition: 0.1s;
     }
-    .btn-green { background: #22c55e; color: white; }
-    .btn-purple { background: #8b5cf6; color: white; }
-    .btn-blue { background: #0ea5e9; color: white; }
+    .btn:hover { background: #fbbf24; }
+    .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #b45309; }
+    .btn-green { background: #22c55e; color: white; box-shadow: 0 4px 0 #15803d; }
+    .btn-purple { background: #8b5cf6; color: white; box-shadow: 0 4px 0 #6d28d9; }
+    .btn-blue { background: #0ea5e9; color: white; box-shadow: 0 4px 0 #0369a1; }
+    .btn-gray { background: #475569; color: white; box-shadow: 0 4px 0 #1e293b; }
 
-    /* Quiz */
-    .quiz-question { background: #0f172a; border-radius: 10px; padding: 14px; margin-bottom: 12px; font-weight: 700; }
+    .quiz-question { background: #0f172a; border: 2px solid #38bdf8; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; margin-bottom: 12px; line-height: 1.5; }
     .quiz-options { display: grid; gap: 8px; margin-bottom: 12px; }
     .quiz-option {
       background: #334155;
-      padding: 12px;
+      border: 2px solid #475569;
       border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
+      padding: 12px 14px;
+      font-size: 13px;
+      font-weight: 800;
       text-align: left;
+      cursor: pointer;
     }
-    .quiz-option.correct { background: #166534 !important; }
-    .quiz-option.wrong { background: #991b1b !important; }
+    .quiz-option:hover { border-color: #f59e0b; }
+    .quiz-option.correct { background: #166534 !important; border-color: #22c55e !important; }
+    .quiz-option.wrong { background: #991b1b !important; border-color: #ef4444 !important; }
+    .quiz-feedback { padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; margin-bottom: 12px; display: none; }
+    .feedback-correct { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .feedback-wrong { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
-    /* Leaderboard Table */
-    .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; font-size: 13px; }
-    .leaderboard-table th { border-bottom: 2px solid #facc15; color: #facc15; padding: 8px 4px; }
-    .leaderboard-table td { padding: 8px 4px; border-bottom: 1px solid #334155; }
+    .table-container {
+      max-height: 250px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      margin: 12px 0;
+    }
+    .leaderboard-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+    .leaderboard-table th { position: sticky; top: 0; background: #0f172a; border-bottom: 2px solid #facc15; color: #facc15; padding: 8px 6px; }
+    .leaderboard-table td { padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-
-  <!-- TOMBOL PERINGKAT PATEN -->
-  <button id="btnFloatingLeaderboard" onclick="openLeaderboardModal()">🏆 TOP SISWA</button>
 
   <div id="canvas-container"></div>
 
   <!-- HUD -->
   <div id="hud">
     <div class="hud-top">
-      <div class="hud-panel" onclick="openStudentModal()" style="cursor:pointer;" title="Ganti Nama">
-        <div style="color:#38bdf8;" id="hudStudentName">Belum diisi</div>
-        <div style="font-size:10px; color:#94a3b8;" id="hudStudentClass">Kelas: -</div>
+      <div class="hud-left-group">
+        <button class="btn-icon-menu" id="btnOpenInGameMenu">☰ MENU</button>
+        <div class="hud-panel">
+          <div style="color:#38bdf8; font-weight:900;" id="hudStudentName">Siswa</div>
+          <div style="font-size:9px; color:#94a3b8;" id="hudStudentClass">Kelas: -</div>
+        </div>
       </div>
       <div class="hud-panel">
         <div>LVL: <span id="hudLevel">1</span></div>
         <div class="progress-box"><div class="progress-fill" id="hudProgress"></div></div>
       </div>
       <div class="hud-panel">
-        ⏱️ <span id="hudTimer">0s</span> | ⭐ <span id="hudScore">0</span> | 🪙 <span id="hudCoins">0</span> | ❤️ <span id="hudLives">3</span>
+        ⏱️ <span id="hudTimer">0s</span> | ⭐ <span id="hudScore">0</span> | ❤️ <span id="hudLives">3</span>
       </div>
     </div>
     <div></div>
   </div>
 
-  <div id="interaction-hint">TEKAN [E] UNTUK SOAL SCRATCH 📜</div>
-  <div id="notif-toast">Nilai berhasil disimpan di Spreadsheet!</div>
+  <div id="interaction-hint">KETUK TOMBOL [KUIS] 📜</div>
+  <div id="notif-toast">Nilai tersimpan di Spreadsheet!</div>
 
-  <!-- MODAL: DATA SISWA -->
-  <div class="modal-overlay" id="studentModal">
+  <!-- KONTROL SENTUH HP (VIRTUAL JOYSTICK & TOMBOL AKSI) -->
+  <div id="mobileControls">
+    <div id="joystickZone">
+      <div id="joystickBase">
+        <div id="joystickStick"></div>
+      </div>
+    </div>
+
+    <div id="mobileActionZone">
+      <button class="action-touch-btn" id="btnInteract" type="button" aria-label="Kuis">
+        <span class="btn-icon">📜</span>
+        <span class="btn-label">KUIS</span>
+      </button>
+      <button class="action-touch-btn" id="btnJump" type="button" aria-label="Lompat">
+        <span class="btn-icon">⬆️</span>
+        <span class="btn-label">LOMPAT</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: MENU UTAMA -->
+  <div class="modal-overlay" id="mainMenuModal">
     <div class="modal-card">
-      <h2 class="modal-title">🚀 SCRATCH ADVENTURE</h2>
-      <p style="color:#cbd5e1; margin-bottom: 15px; font-size:13px;">Masukkan data untuk menyimpan peringkat ke Google Sheets guru!</p>
+      <h1 class="modal-title">🐱 SCRATCH OBBY 3D</h1>
+      <p style="color:#cbd5e1; font-size:13px; margin-bottom: 16px;">Petualangan Coding SMP Kelas VII & Papan Peringkat</p>
+
+      <div style="background:#0f172a; padding:12px; border-radius:12px; margin-bottom:14px; text-align:left; font-size:12px; border:1px solid #334155;">
+        <div>👤 Siswa Aktif: <strong id="menuDisplayStudent" style="color:#38bdf8;">Belum diisi</strong></div>
+        <div>🏫 Kelas / Absen: <strong id="menuDisplayClass" style="color:#94a3b8;">-</strong></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-green" id="btnStartGame" style="padding:14px; font-size:16px;">▶ MULAI PETUALANGAN</button>
+        <button class="btn btn-purple" id="btnMenuLeaderboard">🏆 PAPAN PERINGKAT SEMUA SISWA</button>
+        <button class="btn btn-blue" id="btnChangeStudent">✏️ GANTI IDENTITAS SISWA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: INPUT IDENTITAS -->
+  <div class="modal-overlay" id="studentModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">📝 DATA IDENTITAS SISWA</h2>
+      <p style="color:#cbd5e1; margin-bottom: 12px; font-size:12px;">Data akan tercatat di Google Sheets guru.</p>
       
       <div class="form-group">
-        <label>Nama Siswa</label>
-        <input type="text" id="inputStudentName" class="form-input" placeholder="Nama Lengkap" autocomplete="off">
+        <label>Nama Lengkap Siswa</label>
+        <input type="text" id="inputStudentName" class="form-input" placeholder="Contoh: Budi Pratama" autocomplete="off">
       </div>
       <div class="form-group">
-        <label>Kelas & No. Absen</label>
-        <input type="text" id="inputStudentClass" class="form-input" placeholder="Contoh: 7A / 15" autocomplete="off">
+        <label>Kelas & Nomor Absen</label>
+        <input type="text" id="inputStudentClass" class="form-input" placeholder="Contoh: VII-B / 14" autocomplete="off">
       </div>
 
-      <div style="margin-top: 15px;">
-        <button class="btn btn-green" id="btnSaveStudent" style="width: 100%; padding: 12px;">Mulai Main ➔</button>
-        <button class="btn btn-purple" onclick="openLeaderboardModal()" style="width: 100%; margin-top: 8px;">Lihat Peringkat Sekarang 🏆</button>
+      <div style="margin-top: 14px;">
+        <button class="btn btn-green" id="btnSaveStudent" style="width: 100%;">Simpan Identitas ✔</button>
+        <button class="btn btn-gray" id="btnCancelStudent" style="width: 100%; margin-top:6px;">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PAUSE -->
+  <div class="modal-overlay" id="pauseMenuModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">⏸️ MENU PERMAINAN</h2>
+      <p style="color:#cbd5e1; margin-bottom:14px;">Permainan dijeda sementara.</p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-green" id="btnResumeGame">Lanjutkan Bermain ➔</button>
+        <button class="btn btn-purple" id="btnPauseLeaderboard">🏆 Papan Peringkat</button>
+        <button class="btn btn-gray" id="btnReturnToMainMenu">Ke Menu Utama 🏠</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LEADERBOARD -->
+  <div class="modal-overlay" id="leaderboardModal" style="display: none;">
+    <div class="modal-card">
+      <h2 class="modal-title">🏆 PAPAN PERINGKAT SISWA</h2>
+      <p style="font-size:11px; color:#94a3b8;">Skor Tertinggi & Waktu Tercepat Semua Siswa</p>
+      
+      <div id="leaderboardLoading" style="color:#facc15; font-weight:bold; margin:20px 0;">Mengambil data dari Google Sheets...</div>
+      
+      <div class="table-container" id="leaderboardTableWrap" style="display:none;">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th>Nama Siswa</th>
+              <th>Kelas</th>
+              <th>Skor</th>
+              <th>Waktu</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <button class="btn btn-green" id="btnCloseLeaderboard">Tutup</button>
       </div>
     </div>
   </div>
@@ -237,48 +518,40 @@
   <!-- MODAL: QUIZ -->
   <div class="modal-overlay" id="quizModal" style="display: none;">
     <div class="modal-card">
-      <h2 class="modal-title" style="font-size: 20px;">Tantangan Scratch</h2>
+      <div style="font-size:11px; color:#f59e0b; font-weight:800; text-transform:uppercase;">Ujian Scratch SMP</div>
+      <h2 class="modal-title" style="font-size: 18px; margin-bottom: 8px;" id="quizTopicTitle">Ujian Scratch</h2>
       <div class="quiz-question" id="quizQuestionText">Pertanyaan...</div>
       <div class="quiz-options" id="quizOptionsContainer"></div>
-      <div id="quizFeedback" style="padding:10px; margin-bottom:10px; border-radius:8px; display:none; font-weight:bold;"></div>
-      <button class="btn btn-blue" id="btnContinueGame" style="display: none; width: 100%;">Lanjutkan ➔</button>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <button class="btn btn-blue" id="btnContinueGame" style="display: none; width: 100%;">Lanjutkan Petualangan ➔</button>
     </div>
   </div>
 
-  <!-- MODAL: LEADERBOARD -->
-  <div class="modal-overlay" id="leaderboardModal" style="display: none;">
+  <!-- MODAL: WIN -->
+  <div class="modal-overlay" id="winModal" style="display: none;">
     <div class="modal-card">
-      <h2 class="modal-title">🏆 TOP 10 PERINGKAT</h2>
-      <p style="font-size:12px; color:#94a3b8;">Diurutkan dari Skor Tertinggi & Waktu Tercepat</p>
+      <h2 class="modal-title">🎉 LEVEL SELESAI!</h2>
+      <p style="color:#cbd5e1; font-size:13px; margin-bottom: 12px;">Skor dan catatan waktumu sudah tersimpan ke spreadsheet guru!</p>
       
-      <div id="leaderboardLoading" style="color:#facc15; font-weight:bold; margin:20px 0;">Mengambil data dari Spreadsheet...</div>
-      
-      <table class="leaderboard-table" id="leaderboardTable" style="display: none;">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nama</th>
-            <th>Kelas</th>
-            <th>Skor</th>
-            <th>Waktu</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboardBody"></tbody>
-      </table>
+      <div style="background:#0f172a; padding:12px; border-radius:12px; margin-bottom:14px; text-align:left; font-size:12px; line-height: 1.8;">
+        <div>👤 Siswa: <strong id="winStudentName" style="color:#38bdf8;">-</strong></div>
+        <div>⭐ Skor: <strong id="winScore" style="color:#ffd152;">0</strong></div>
+        <div>⏱️ Waktu Tempuh: <strong id="winTime" style="color:#4ade80;">0s</strong></div>
+      </div>
 
-      <div style="margin-top: 18px;">
-        <button class="btn btn-green" onclick="closeLeaderboardModal()">Tutup</button>
+      <div>
+        <button class="btn btn-green" id="btnNextLevel">Level Berikutnya ➔</button>
+        <button class="btn btn-purple" id="btnWinLeaderboard">Cek Peringkat 🏆</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: WIN SCREEN -->
-  <div class="modal-overlay" id="winModal" style="display: none;">
+  <!-- MODAL: GAME OVER -->
+  <div class="modal-overlay" id="gameOverModal" style="display: none;">
     <div class="modal-card">
-      <h2 class="modal-title">🎉 LEVEL SELESAI!</h2>
-      <p style="margin-bottom:12px;">Skor: <span id="winScore">0</span> | Waktu: <span id="winTime">0s</span></p>
-      <button class="btn btn-green" id="btnNextLevel">Level Berikutnya ➔</button>
-      <button class="btn btn-purple" onclick="openLeaderboardModal()">Papan Peringkat 🏆</button>
+      <h2 class="modal-title" style="color: #ef4444;">💀 NYAWA HABIS</h2>
+      <p style="color:#cbd5e1; margin-bottom: 14px; font-size: 13px;">Belajar dari kesalahan adalah kunci programmer sukses!</p>
+      <button class="btn btn-green" id="btnRestartLevel">Ulangi Level Ini 🔄</button>
     </div>
   </div>
 
@@ -296,7 +569,7 @@
     function startTimer() {
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(() => {
-        if (!gameState.isQuizActive && studentData.name) {
+        if (!gameState.isQuizActive && !gameState.isPaused && studentData.name) {
           totalElapsedTime++;
           document.getElementById('hudTimer').innerText = `${totalElapsedTime}s`;
         }
@@ -312,325 +585,850 @@
         skor: gameState.score,
         koin: gameState.coins,
         waktu: totalElapsedTime,
-        status: statusDesc || "Main",
+        status: statusDesc || "Update",
         t: Date.now()
       });
       const img = new Image();
+      img.onload = () => showToast("✅ Tersimpan di Spreadsheet!");
+      img.onerror = () => showToast("✅ Data telah dikirim!");
       img.src = `${SPREADSHEET_URL}?${params.toString()}`;
     }
 
-    function openLeaderboardModal() {
-      document.getElementById('leaderboardModal').style.display = 'flex';
+    function fetchAllLeaderboard() {
       const loading = document.getElementById('leaderboardLoading');
-      const table = document.getElementById('leaderboardTable');
+      const wrap = document.getElementById('leaderboardTableWrap');
       const tbody = document.getElementById('leaderboardBody');
 
       loading.style.display = 'block';
-      table.style.display = 'none';
+      wrap.style.display = 'none';
       tbody.innerHTML = '';
 
       fetch(`${SPREADSHEET_URL}?action=getLeaderboard&t=${Date.now()}`)
         .then(res => res.json())
         .then(data => {
           loading.style.display = 'none';
-          table.style.display = 'table';
+          wrap.style.display = 'block';
+
           if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:10px;">Belum ada data.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px;">Belum ada data siswa.</td></tr>';
             return;
           }
+
           data.forEach((p, idx) => {
             const tr = document.createElement('tr');
             let rankIcon = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1);
+            const isMe = studentData.name && p.nama.toLowerCase() === studentData.name.toLowerCase();
+            if (isMe) tr.style.backgroundColor = "rgba(56, 189, 248, 0.15)";
+
             tr.innerHTML = `
-              <td>${rankIcon}</td>
-              <td style="font-weight:bold; color:${p.nama === studentData.name ? '#38bdf8' : '#fff'};">${p.nama}</td>
+              <td style="font-weight:900;">${rankIcon}</td>
+              <td style="font-weight:700; color:${isMe ? '#38bdf8' : '#fff'};">${p.nama} ${isMe ? '⭐' : ''}</td>
               <td>${p.kelas}</td>
-              <td style="color:#facc15; font-weight:bold;">${p.skor}</td>
-              <td style="color:#4ade80;">${p.waktu}s</td>
+              <td style="color:#facc15; font-weight:800;">${p.skor}</td>
+              <td style="color:#4ade80; font-weight:700;">${p.waktu}s</td>
             `;
             tbody.appendChild(tr);
           });
         })
         .catch(() => {
-          loading.innerText = "Gagal memuat peringkat dari Google Sheets.";
+          loading.innerText = "Gagal memuat peringkat. Periksa koneksi internet.";
         });
     }
 
-    function closeLeaderboardModal() {
-      document.getElementById('leaderboardModal').style.display = 'none';
+    function showToast(msg) {
+      const toast = document.getElementById('notif-toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
 
-    function openStudentModal() {
-      document.getElementById('inputStudentName').value = studentData.name;
-      document.getElementById('inputStudentClass').value = studentData.className;
-      document.getElementById('studentModal').style.display = 'flex';
-      gameState.isQuizActive = true;
-    }
-
-    document.getElementById('btnSaveStudent').addEventListener('click', () => {
-      const name = document.getElementById('inputStudentName').value.trim();
-      const cls = document.getElementById('inputStudentClass').value.trim();
-      if (!name) return alert("Silakan isi nama siswa!");
-      
-      studentData.name = name;
-      studentData.className = cls || "VII";
-      localStorage.setItem('scratch_student_name', name);
-      localStorage.setItem('scratch_student_class', studentData.className);
-
-      document.getElementById('studentModal').style.display = 'none';
-      gameState.isQuizActive = false;
-      updateHud();
-      startTimer();
-      sendDataToSpreadsheet("Login");
-    });
-
-    /* KUIS SOAL */
+    /* BANK SOAL */
     const QUIZ_DATABASE = {
-      1: [{ q: "Blok untuk memulai program saat bendera hijau diklik?", options: ["when green flag clicked", "move 10 steps", "say Hello", "stop all"], correct: 0, exp: "when green flag clicked adalah pemicu utama." }],
-      2: [{ q: "Untuk gerak horizontal ke kanan diubah sumbu...", options: ["y positif", "x positif", "x negatif", "y negatif"], correct: 1, exp: "Sumbu X bertambah membuat objek ke kanan." }],
-      3: [{ q: "Blok untuk membuat karakter bicara di panggung?", options: ["say for 2 secs", "think", "switch costume", "hide"], correct: 0, exp: "Blok say menampilkan teks ucapan." }],
-      4: [{ q: "Blok perulangan tanpa pernah berhenti adalah...", options: ["repeat 10", "forever", "if", "wait"], correct: 1, exp: "forever mengulang instruksi selamanya." }],
-      5: [{ q: "Tempat menyimpan skor yang bisa bertambah disebut...", options: ["Variabel", "Sprite", "Backdrop", "Kostum"], correct: 0, exp: "Variabel menyimpan data angka atau teks dinamis." }]
+      1: [
+        {
+          q: "Blok apa yang paling umum digunakan untuk memulai program saat bendera hijau diklik?",
+          options: ["when green flag clicked", "move 10 steps", "say Hello!", "stop all"],
+          correct: 0,
+          explanation: "Blok 'when green flag clicked' adalah pemicu utama di Scratch."
+        },
+        {
+          q: "Di panggung Scratch, koordinat posisi tengah layar adalah...",
+          options: ["x: 100, y: 100", "x: 0, y: 0", "x: 240, y: 180", "x: -240, y: -180"],
+          correct: 1,
+          explanation: "Pusat stage Scratch adalah x: 0 dan y: 0."
+        }
+      ],
+      2: [
+        {
+          q: "Agar karakter bergerak horizontal ke kanan, blok apa yang diubah nilainya?",
+          options: ["change y by 10", "change x by 10", "change x by -10", "set y to 0"],
+          correct: 1,
+          explanation: "Sumbu X positif memindahkan sprite ke arah kanan."
+        }
+      ],
+      3: [
+        {
+          q: "Blok apa yang dipakai untuk menampilkan balon teks percakapan?",
+          options: ["Motion", "Looks (Tampilan)", "Sound", "Sensing"],
+          correct: 1,
+          explanation: "Balon ucapan 'say' berada di kategori Looks."
+        }
+      ],
+      4: [
+        {
+          q: "Blok loop yang membuat perintah berjalan terus-menerus tanpa henti adalah...",
+          options: ["repeat 10", "forever", "if then", "wait 1 secs"],
+          correct: 1,
+          explanation: "Blok forever mengulang perintah selamanya."
+        }
+      ],
+      5: [
+        {
+          q: "Variabel dalam Scratch digunakan untuk...",
+          options: ["Menyimpan nilai dinamis seperti skor atau nyawa", "Menghapus sprite", "Mengganti background saja", "Memilih kostum"],
+          correct: 0,
+          explanation: "Variabel berfungsi sebagai wadah penyimpan nilai angka/teks."
+        }
+      ]
     };
 
-    let currentLevel = 1;
-    let gameState = { score: 0, coins: 0, lives: 3, checkpoint: { x: 0, y: 1.5, z: 0 }, isQuizActive: false, gateUnlocked: false };
+    /* AUDIO ENGINE */
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      playTone(freq, type = 'sine', duration = 0.15, vol = 0.12) {
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e){}
+      },
+      jump() { this.playTone(320, 'square', 0.14, 0.1); },
+      doubleJump() { 
+        this.playTone(460, 'triangle', 0.12, 0.12);
+        setTimeout(() => this.playTone(640, 'triangle', 0.14, 0.12), 60);
+      },
+      coin() { 
+        this.playTone(980, 'sine', 0.08, 0.1); 
+        setTimeout(() => this.playTone(1320, 'sine', 0.16, 0.12), 60);
+      },
+      correct() {
+        this.playTone(523, 'sine', 0.08, 0.12);
+        setTimeout(() => this.playTone(659, 'sine', 0.08, 0.12), 80);
+        setTimeout(() => this.playTone(783, 'sine', 0.22, 0.15), 160);
+      },
+      wrong() {
+        this.playTone(220, 'sawtooth', 0.2, 0.12);
+        setTimeout(() => this.playTone(165, 'sawtooth', 0.25, 0.15), 100);
+      }
+    };
 
-    /* 3D ENGINE SETUP */
+    /* THREE.JS SETUP */
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x38bdf8);
+    scene.fog = new THREE.FogExp2(0x38bdf8, 0.015);
+
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x475569, 0.9));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(20, 40, 20);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x475569, 0.85));
+    const dirLight = new THREE.DirectionalLight(0xfffaed, 0.9);
+    dirLight.position.set(25, 45, 25);
+    dirLight.castShadow = true;
     scene.add(dirLight);
 
-    let platforms = [], coins = [], quizPortals = [], finishGate = null;
+    let platforms = [], coins = [], quizPortals = [], finishGate = null, gateBarrier = null;
+    let currentLevel = 1;
+    let gameState = {
+      score: 0,
+      coins: 0,
+      lives: 3,
+      checkpoint: { x: 0, y: 1.5, z: 0 },
+      isQuizActive: false,
+      isPaused: false,
+      gateUnlocked: false
+    };
 
-    /* PEMAIN */
+    /* KARAKTER */
     const playerGroup = new THREE.Group();
     scene.add(playerGroup);
-    const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.8, 0.5), new THREE.MeshLambertMaterial({ color: 0xf97316 }));
+
+    const orangeMat = new THREE.MeshLambertMaterial({ color: 0xff8c00 });
+    const blueMat = new THREE.MeshLambertMaterial({ color: 0x00d2ff });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+
+    const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.8, 0.5), orangeMat);
     bodyMesh.position.y = 0.6;
-    const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshLambertMaterial({ color: 0xf97316 }));
+    bodyMesh.castShadow = true;
+    playerGroup.add(bodyMesh);
+
+    const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.5), orangeMat);
     headMesh.position.y = 1.25;
-    playerGroup.add(bodyMesh, headMesh);
+    headMesh.castShadow = true;
+    playerGroup.add(headMesh);
 
-    const player = { pos: new THREE.Vector3(0, 1.5, 0), vel: new THREE.Vector3(), speed: 10, gravity: -22, jumpPower: 9.8, isGrounded: false, jumps: 2 };
+    const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.05), eyeMat);
+    eyeR.position.set(0.16, 1.28, -0.26);
+    const eyeL = eyeR.clone();
+    eyeL.position.x = -0.16;
+    playerGroup.add(eyeR, eyeL);
 
-    /* KONTROL KEYBOARD */
-    const keys = {};
-    window.addEventListener('keydown', e => {
-      keys[e.key.toLowerCase()] = true;
-      if (e.code === 'Space') {
-        if (player.isGrounded) {
-          player.vel.y = player.jumpPower;
-          player.isGrounded = false;
-          player.jumps = 1;
-        } else if (player.jumps > 0) {
-          player.vel.y = player.jumpPower * 0.95;
-          player.jumps = 0;
-        }
-      }
-      if (e.key.toLowerCase() === 'e') checkPortal();
+    const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3), blueMat);
+    antenna.position.set(0, 1.6, 0);
+    playerGroup.add(antenna);
+
+    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.35, 0.25), blueMat);
+    legL.position.set(-0.2, 0.18, 0);
+    const legR = legL.clone();
+    legR.position.x = 0.2;
+    playerGroup.add(legL, legR);
+
+    const player = {
+      pos: new THREE.Vector3(0, 1.5, 0),
+      vel: new THREE.Vector3(),
+      speed: 10.5,
+      gravity: -21.0,
+      jumpPower: 9.8,
+      isGrounded: false,
+      coyoteTimer: 0.2,
+      maxCoyote: 0.2,
+      jumpsRemaining: 2
+    };
+
+    /* SISTEM INPUT: JOYSTICK HP & KEYBOARD LAPTOP */
+    const keys = { w: false, s: false, a: false, d: false };
+    const joystickVector = { x: 0, y: 0 };
+
+    // Keyboard (Laptop)
+    window.addEventListener('keydown', (e) => {
+      AudioEngine.init();
+      const k = e.key.toLowerCase();
+      if (k === 'w' || e.code === 'ArrowUp') keys.w = true;
+      if (k === 's' || e.code === 'ArrowDown') keys.s = true;
+      if (k === 'a' || e.code === 'ArrowLeft') keys.a = true;
+      if (k === 'd' || e.code === 'ArrowRight') keys.d = true;
+
+      if (e.code === 'Space') triggerJump();
+      if (k === 'e') checkPortalInteraction();
     });
-    window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
-    function loadLevel(lvl) {
+    window.addEventListener('keyup', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || e.code === 'ArrowUp') keys.w = false;
+      if (k === 's' || e.code === 'ArrowDown') keys.s = false;
+      if (k === 'a' || e.code === 'ArrowLeft') keys.a = false;
+      if (k === 'd' || e.code === 'ArrowRight') keys.d = false;
+    });
+
+    // Kontrol Visibilitas Tombol HP
+    function setMobileControlsVisible(show) {
+      const el = document.getElementById('mobileControls');
+      if (el) el.style.display = show ? 'block' : 'none';
+      if (!show) resetJoystick();
+    }
+
+    // Inisialisasi Joystick Analog HP
+    const joystickZone = document.getElementById('joystickZone');
+    const joystickBase = document.getElementById('joystickBase');
+    const joystickStick = document.getElementById('joystickStick');
+    let joystickTouchId = null;
+    let joystickCenter = { x: 0, y: 0 };
+    const maxJoystickRadius = 40;
+
+    function resetJoystick() {
+      joystickTouchId = null;
+      joystickVector.x = 0;
+      joystickVector.y = 0;
+      if (joystickStick) joystickStick.style.transform = 'translate(0px, 0px)';
+    }
+
+    function updateJoystickPosition(clientX, clientY) {
+      let dx = clientX - joystickCenter.x;
+      let dy = clientY - joystickCenter.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxJoystickRadius) {
+        dx = (dx / dist) * maxJoystickRadius;
+        dy = (dy / dist) * maxJoystickRadius;
+      }
+
+      joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+      // Normalized vector (-1 s/d 1)
+      joystickVector.x = dx / maxJoystickRadius;
+      joystickVector.y = dy / maxJoystickRadius;
+    }
+
+    if (joystickZone && joystickBase) {
+      joystickZone.addEventListener('touchstart', (e) => {
+        if (joystickTouchId !== null) return;
+        const touch = e.changedTouches[0];
+        joystickTouchId = touch.identifier;
+        AudioEngine.init();
+
+        const rect = joystickBase.getBoundingClientRect();
+        joystickCenter = {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+        };
+        updateJoystickPosition(touch.clientX, touch.clientY);
+        if (e.cancelable) e.preventDefault();
+      }, { passive: false });
+
+      window.addEventListener('touchmove', (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            updateJoystickPosition(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            if (e.cancelable) e.preventDefault();
+            break;
+          }
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchend', (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            resetJoystick();
+            break;
+          }
+        }
+      });
+
+      window.addEventListener('touchcancel', (e) => {
+        if (joystickTouchId === null) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            resetJoystick();
+            break;
+          }
+        }
+      });
+
+      // Mouse fallback untuk uji coba di laptop
+      let isMouseJoy = false;
+      joystickZone.addEventListener('mousedown', (e) => {
+        isMouseJoy = true;
+        AudioEngine.init();
+        const rect = joystickBase.getBoundingClientRect();
+        joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        updateJoystickPosition(e.clientX, e.clientY);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (isMouseJoy) updateJoystickPosition(e.clientX, e.clientY);
+      });
+      window.addEventListener('mouseup', () => {
+        if (isMouseJoy) {
+          isMouseJoy = false;
+          resetJoystick();
+        }
+      });
+    }
+
+    // Tombol Aksi Sentuh (Lompat & Kuis)
+    function setupActionButton(btnId, callback) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+
+      const onPress = (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        AudioEngine.init();
+        btn.classList.add('active-touch');
+        callback();
+      };
+      const onRelease = (e) => {
+        if (e.cancelable) e.preventDefault();
+        btn.classList.remove('active-touch');
+      };
+
+      btn.addEventListener('touchstart', onPress, { passive: false });
+      btn.addEventListener('touchend', onRelease, { passive: false });
+      btn.addEventListener('touchcancel', onRelease, { passive: false });
+      btn.addEventListener('mousedown', onPress);
+      btn.addEventListener('mouseup', onRelease);
+    }
+
+    setupActionButton('btnJump', triggerJump);
+    setupActionButton('btnInteract', checkPortalInteraction);
+
+    document.getElementById('interaction-hint').addEventListener('click', checkPortalInteraction);
+    document.getElementById('interaction-hint').addEventListener('touchstart', (e) => {
+      if (e.cancelable) e.preventDefault();
+      checkPortalInteraction();
+    }, { passive: false });
+
+    function triggerJump() {
+      if (gameState.isQuizActive) return;
+      if (player.isGrounded || player.coyoteTimer > 0) {
+        player.vel.y = player.jumpPower;
+        player.isGrounded = false;
+        player.coyoteTimer = 0;
+        player.jumpsRemaining = 1;
+        AudioEngine.jump();
+      } else if (player.jumpsRemaining > 0) {
+        player.vel.y = player.jumpPower * 0.94;
+        player.jumpsRemaining--;
+        AudioEngine.doubleJump();
+      }
+    }
+
+    /* LEVEL BUILDER */
+    const levelSettings = {
+      1: { bg: 0x64b5f6, plat: 0x4caf50, accent: 0xffb300 },
+      2: { bg: 0x4dd0e1, plat: 0x26a69a, accent: 0xab47bc },
+      3: { bg: 0xba68c8, plat: 0x7e57c2, accent: 0xff7043 },
+      4: { bg: 0x4db6ac, plat: 0x00897b, accent: 0xfdd835 },
+      5: { bg: 0xff8a65, plat: 0xe64a19, accent: 0xffeb3b }
+    };
+
+    function clearLevel() {
       platforms.forEach(p => scene.remove(p.mesh));
       coins.forEach(c => scene.remove(c.mesh));
       quizPortals.forEach(q => scene.remove(q.mesh));
       if (finishGate) scene.remove(finishGate);
-      platforms = []; coins = []; quizPortals = [];
-
-      currentLevel = lvl;
-      gameState.gateUnlocked = false;
-      document.getElementById('hudLevel').innerText = lvl;
-
-      // Platform start
-      createPlat(0, 0, 0, 6, 1, 6, 0x22c55e);
-
-      let z = -6, y = 0;
-      for (let i = 0; i < 4; i++) {
-        z -= 5.5; y += 0.3;
-        createPlat(0, y, z, 4.5, 0.8, 4, 0x22c55e);
-        createCoin(0, y + 1.2, z);
-      }
-
-      z -= 6;
-      createPlat(0, y, z, 6, 1, 6, 0xf59e0b);
-      createPortal(0, y + 0.5, z, lvl);
-
-      for (let i = 0; i < 3; i++) {
-        z -= 5.5; y += 0.3;
-        createPlat(0, y, z, 4.5, 0.8, 4, 0x22c55e);
-        createCoin(0, y + 1.2, z);
-      }
-
-      z -= 6;
-      createPlat(0, y, z, 6, 1, 6, 0x10b981);
-      const gateMesh = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 0.2), new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.6 }));
-      gateMesh.position.set(0, y + 2, z);
-      scene.add(gateMesh);
-      finishGate = { mesh: gateMesh, z: z };
-
-      player.pos.set(0, 1.5, 0);
-      player.vel.set(0, 0, 0);
+      platforms = []; coins = []; quizPortals = []; finishGate = null; gateBarrier = null;
     }
 
-    function createPlat(x, y, z, w, h, d, col) {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ color: col }));
+    function createPlatform(x, y, z, w, h, d, color) {
+      const geo = new THREE.BoxGeometry(w, h, d);
+      const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color }));
       mesh.position.set(x, y, z);
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
       scene.add(mesh);
       platforms.push({ mesh, x, y, z, w, h, d });
     }
 
     function createCoin(x, y, z) {
-      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16), new THREE.MeshLambertMaterial({ color: 0xfacc15 }));
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.1, 16), new THREE.MeshLambertMaterial({ color: 0xffd700 }));
       mesh.position.set(x, y, z);
       mesh.rotation.x = Math.PI / 2;
       scene.add(mesh);
-      coins.push({ mesh, x, y, z, taken: false });
+      coins.push({ mesh, x, y, z, collected: false });
     }
 
-    function createPortal(x, y, z, lvl) {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 3, 0.2), new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.7 }));
-      mesh.position.set(x, y + 1.5, z);
-      scene.add(mesh);
-      quizPortals.push({ mesh, x, y, z, lvl, solved: false });
+    function createQuizPortal(x, y, z, lvl) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+      const aura = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 2.7), new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.65, side: THREE.DoubleSide }));
+      aura.position.set(0, 1.45, 0);
+      group.add(aura);
+      scene.add(group);
+      quizPortals.push({ mesh: group, x, y, z, aura, levelNum: lvl, solved: false });
     }
 
-    function checkPortal() {
-      quizPortals.forEach(p => {
-        if (!p.solved && player.pos.distanceTo(p.mesh.position) < 3) {
-          openQuiz(p);
+    function createFinishGate(x, y, z) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+      gateBarrier = new THREE.Mesh(new THREE.BoxGeometry(3.1, 3.8, 0.2), new THREE.MeshLambertMaterial({ color: 0xef4444, transparent: true, opacity: 0.7 }));
+      gateBarrier.position.set(0, 1.9, 0);
+      group.add(gateBarrier);
+      scene.add(group);
+      finishGate = { group, x, y, z };
+    }
+
+    function loadLevel(lvl) {
+      clearLevel();
+      currentLevel = lvl;
+      gameState.gateUnlocked = false;
+      const conf = levelSettings[lvl] || levelSettings[1];
+
+      scene.background.setHex(conf.bg);
+      scene.fog.color.setHex(conf.bg);
+      document.getElementById('hudLevel').innerText = lvl;
+
+      createPlatform(0, 0, 0, 7, 1, 7, conf.plat);
+
+      let curZ = -6, curY = 0;
+      for (let i = 0; i < 5; i++) {
+        curZ -= 5.5; curY += 0.4;
+        createPlatform(0, curY, curZ, 4.5, 0.8, 4.0, conf.plat);
+        createCoin(0, curY + 1.2, curZ);
+      }
+
+      curZ -= 6.5;
+      createPlatform(0, curY, curZ, 7, 1, 7, conf.accent);
+      createQuizPortal(0, curY + 0.5, curZ, lvl);
+
+      for (let i = 0; i < 4; i++) {
+        curZ -= 5.5; curY += 0.3;
+        createPlatform(0, curY, curZ, 4.5, 0.8, 4.0, conf.plat);
+        createCoin(0, curY + 1.2, curZ);
+      }
+
+      curZ -= 7;
+      createPlatform(0, curY, curZ, 8, 1, 8, 0x10b981);
+      createFinishGate(0, curY + 0.5, curZ);
+
+      gameState.checkpoint = { x: 0, y: 1.5, z: 0 };
+      respawnPlayer();
+    }
+
+    function respawnPlayer() {
+      player.pos.set(gameState.checkpoint.x, gameState.checkpoint.y, gameState.checkpoint.z);
+      player.vel.set(0, 0, 0);
+      player.isGrounded = true;
+      player.jumpsRemaining = 2;
+    }
+
+    /* PHYSICS & RENDER LOOP */
+    let lastTime = performance.now();
+
+    function updatePhysics(dt) {
+      if (gameState.isQuizActive || gameState.isPaused) return;
+
+      let mx = joystickVector.x;
+      let mz = joystickVector.y;
+      if (keys.w) mz -= 1;
+      if (keys.s) mz += 1;
+      if (keys.a) mx -= 1;
+      if (keys.d) mx += 1;
+
+      const inputLen = Math.hypot(mx, mz);
+      let worldMoveX = 0, worldMoveZ = 0;
+
+      if (inputLen > 0.08) {
+        worldMoveX = mx / Math.max(1, inputLen);
+        worldMoveZ = mz / Math.max(1, inputLen);
+
+        const targetRot = Math.atan2(worldMoveX, worldMoveZ) + Math.PI;
+        playerGroup.rotation.y += (targetRot - playerGroup.rotation.y) * 0.25;
+
+        const t = performance.now() * 0.012;
+        legL.rotation.x = Math.sin(t) * 0.5;
+        legR.rotation.x = -Math.sin(t) * 0.5;
+      } else {
+        legL.rotation.x = 0; legR.rotation.x = 0;
+      }
+
+      player.vel.x = worldMoveX * player.speed;
+      player.vel.z = worldMoveZ * player.speed;
+      player.vel.y += player.gravity * dt;
+
+      if (!player.isGrounded) player.coyoteTimer -= dt;
+      else player.coyoteTimer = player.maxCoyote;
+
+      player.pos.x += player.vel.x * dt;
+      player.pos.z += player.vel.z * dt;
+      player.pos.y += player.vel.y * dt;
+
+      // Collisions
+      player.isGrounded = false;
+      const footY = player.pos.y - 0.1;
+      const forgiveEdge = 0.32;
+
+      for (const p of platforms) {
+        const minX = p.x - p.w / 2 - forgiveEdge;
+        const maxX = p.x + p.w / 2 + forgiveEdge;
+        const minZ = p.z - p.d / 2 - forgiveEdge;
+        const maxZ = p.z + p.d / 2 + forgiveEdge;
+        const topY = p.y + p.h / 2;
+
+        if (player.pos.x >= minX && player.pos.x <= maxX &&
+            player.pos.z >= minZ && player.pos.z <= maxZ) {
+          if (player.pos.y >= topY - 0.35 && footY <= topY + 0.35 && player.vel.y <= 0) {
+            player.pos.y = topY;
+            player.vel.y = 0;
+            player.isGrounded = true;
+            player.jumpsRemaining = 2;
+            break;
+          }
+        }
+      }
+
+      if (!gameState.gateUnlocked && finishGate) {
+        if (Math.hypot(player.pos.x - finishGate.x, player.pos.z - finishGate.z) < 2.0) {
+          player.pos.z = finishGate.z + 2.1;
+        }
+      }
+
+      if (player.pos.y < -12) {
+        gameState.lives--;
+        updateHud();
+        AudioEngine.wrong();
+        if (gameState.lives <= 0) showGameOver();
+        else respawnPlayer();
+      }
+
+      playerGroup.position.copy(player.pos);
+
+      // Third-person camera
+      camera.position.set(player.pos.x, player.pos.y + 3.8, player.pos.z + 8.5);
+      camera.lookAt(player.pos.x, player.pos.y + 1.2, player.pos.z);
+
+      // Coins
+      coins.forEach(c => {
+        if (!c.collected) {
+          c.mesh.rotation.z += 0.04;
+          if (player.pos.distanceTo(c.mesh.position) < 1.1) {
+            c.collected = true;
+            scene.remove(c.mesh);
+            gameState.coins += 1;
+            gameState.score += 20;
+            AudioEngine.coin();
+            updateHud();
+          }
         }
       });
+
+      // Portal Detection
+      let nearPortal = false;
+      quizPortals.forEach(qp => {
+        if (!qp.solved && player.pos.distanceTo(qp.mesh.position) < 3.2) {
+          nearPortal = true;
+        }
+      });
+      document.getElementById('interaction-hint').style.display = nearPortal ? 'block' : 'none';
+      const btnInteractEl = document.getElementById('btnInteract');
+      if (btnInteractEl) {
+        if (nearPortal) btnInteractEl.classList.add('btn-portal-active');
+        else btnInteractEl.classList.remove('btn-portal-active');
+      }
+
+      // Finish Gate
+      if (finishGate && gameState.gateUnlocked && player.pos.distanceTo(finishGate.group.position) < 2.4) {
+        showWinScreen();
+      }
+
+      // Progress
+      if (platforms.length > 0) {
+        const endZ = finishGate ? finishGate.z : -50;
+        const prog = Math.min(100, Math.max(0, (player.pos.z / endZ) * 100));
+        document.getElementById('hudProgress').style.width = `${prog}%`;
+      }
+    }
+
+    /* KUIS ENGINE */
+    let currentQuizItem = null;
+
+    function checkPortalInteraction() {
+      for (const qp of quizPortals) {
+        if (!qp.solved && player.pos.distanceTo(qp.mesh.position) < 3.5) {
+          openQuiz(qp);
+          return;
+        }
+      }
     }
 
     function openQuiz(portal) {
       gameState.isQuizActive = true;
-      const q = QUIZ_DATABASE[portal.lvl][0];
-      document.getElementById('quizQuestionText').innerText = q.q;
-      const c = document.getElementById('quizOptionsContainer');
-      c.innerHTML = '';
-      q.options.forEach((opt, i) => {
-        const b = document.createElement('div');
-        b.className = 'quiz-option';
-        b.innerText = opt;
-        b.onclick = () => {
-          if (i === q.correct) {
-            b.classList.add('correct');
-            portal.solved = true;
-            portal.mesh.material.color.setHex(0x22c55e);
-            gameState.gateUnlocked = true;
-            finishGate.mesh.material.color.setHex(0x22c55e);
-            gameState.score += 100;
-            updateHud();
-            setTimeout(() => {
-              document.getElementById('quizModal').style.display = 'none';
-              gameState.isQuizActive = false;
-            }, 800);
-          } else {
-            b.classList.add('wrong');
-            gameState.lives = Math.max(1, gameState.lives - 1);
-            updateHud();
-          }
-        };
-        c.appendChild(b);
+      setMobileControlsVisible(false);
+      const questions = QUIZ_DATABASE[portal.levelNum] || QUIZ_DATABASE[1];
+      currentQuizItem = questions[Math.floor(Math.random() * questions.length)];
+
+      document.getElementById('quizTopicTitle').innerText = `Level ${portal.levelNum} - Ujian Pemrograman Scratch`;
+      document.getElementById('quizQuestionText').innerText = currentQuizItem.q;
+
+      const optsContainer = document.getElementById('quizOptionsContainer');
+      optsContainer.innerHTML = '';
+
+      currentQuizItem.options.forEach((opt, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'quiz-option';
+        btn.innerText = `${String.fromCharCode(65 + idx)}. ${opt}`;
+        btn.onclick = () => selectQuizAnswer(idx, btn, portal);
+        optsContainer.appendChild(btn);
       });
+
+      document.getElementById('quizFeedback').style.display = 'none';
+      document.getElementById('btnContinueGame').style.display = 'none';
       document.getElementById('quizModal').style.display = 'flex';
     }
 
-    function updateHud() {
-      document.getElementById('hudScore').innerText = gameState.score;
-      document.getElementById('hudCoins').innerText = gameState.coins;
-      document.getElementById('hudLives').innerText = gameState.lives;
-      document.getElementById('hudStudentName').innerText = studentData.name || "Klik untuk isi";
-      document.getElementById('hudStudentClass').innerText = studentData.className ? `Kelas: ${studentData.className}` : "Kelas: -";
-    }
+    function selectQuizAnswer(idx, element, portal) {
+      const feedback = document.getElementById('quizFeedback');
+      const allOptions = document.querySelectorAll('.quiz-option');
+      allOptions.forEach(o => o.style.pointerEvents = 'none');
 
-    let lastTime = performance.now();
-    function animate(currentTime) {
-      requestAnimationFrame(animate);
-      const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
-      lastTime = currentTime;
+      if (idx === currentQuizItem.correct) {
+        element.classList.add('correct');
+        feedback.className = 'quiz-feedback feedback-correct';
+        feedback.innerHTML = `<strong>BENAR! 🎉</strong><br>${currentQuizItem.explanation}`;
+        AudioEngine.correct();
 
-      if (!gameState.isQuizActive) {
-        let mx = 0, mz = 0;
-        if (keys['w'] || keys['arrowup']) mz -= 1;
-        if (keys['s'] || keys['arrowdown']) mz += 1;
-        if (keys['a'] || keys['arrowleft']) mx -= 1;
-        if (keys['d'] || keys['arrowright']) mx += 1;
+        gameState.score += 100;
+        portal.solved = true;
+        portal.aura.material.color.setHex(0x10b981);
+        gameState.gateUnlocked = true;
 
-        player.vel.x = mx * player.speed;
-        player.vel.z = mz * player.speed;
-        player.vel.y += player.gravity * dt;
-
-        player.pos.x += player.vel.x * dt;
-        player.pos.z += player.vel.z * dt;
-        player.pos.y += player.vel.y * dt;
-
-        player.isGrounded = false;
-        for (let p of platforms) {
-          if (player.pos.x >= p.x - p.w/2 - 0.2 && player.pos.x <= p.x + p.w/2 + 0.2 &&
-              player.pos.z >= p.z - p.d/2 - 0.2 && player.pos.z <= p.z + p.d/2 + 0.2) {
-            const topY = p.y + p.h/2;
-            if (player.pos.y >= topY - 0.3 && player.pos.y <= topY + 0.3 && player.vel.y <= 0) {
-              player.pos.y = topY;
-              player.vel.y = 0;
-              player.isGrounded = true;
-              player.jumps = 2;
-              break;
-            }
-          }
+        if (gateBarrier) {
+          gateBarrier.material.color.setHex(0x10b981);
+          gateBarrier.material.opacity = 0.2;
         }
-
-        if (player.pos.y < -10) {
-          player.pos.set(0, 1.5, 0);
-          player.vel.set(0, 0, 0);
-          gameState.lives = Math.max(1, gameState.lives - 1);
-          updateHud();
-        }
-
-        playerGroup.position.copy(player.pos);
-
-        camera.position.set(player.pos.x, player.pos.y + 4, player.pos.z + 8);
-        camera.lookAt(player.pos.x, player.pos.y + 1, player.pos.z);
-
-        coins.forEach(c => {
-          if (!c.taken && player.pos.distanceTo(c.mesh.position) < 1.2) {
-            c.taken = true;
-            scene.remove(c.mesh);
-            gameState.coins += 1;
-            gameState.score += 25;
-            updateHud();
-          }
-        });
-
-        let near = quizPortals.some(p => !p.solved && player.pos.distanceTo(p.mesh.position) < 3);
-        document.getElementById('interaction-hint').style.display = near ? 'block' : 'none';
-
-        if (finishGate && gameState.gateUnlocked && Math.abs(player.pos.z - finishGate.z) < 1.5) {
-          gameState.isQuizActive = true;
-          document.getElementById('winScore').innerText = gameState.score;
-          document.getElementById('winTime').innerText = `${totalElapsedTime}s`;
-          document.getElementById('winModal').style.display = 'flex';
-          sendDataToSpreadsheet(`Lolos Level ${currentLevel}`);
-        }
+        updateHud();
+      } else {
+        element.classList.add('wrong');
+        allOptions[currentQuizItem.correct].classList.add('correct');
+        feedback.className = 'quiz-feedback feedback-wrong';
+        feedback.innerHTML = `<strong>KURANG TEPAT! 💡</strong><br>${currentQuizItem.explanation}`;
+        AudioEngine.wrong();
+        gameState.lives = Math.max(1, gameState.lives - 1);
+        updateHud();
       }
 
-      renderer.render(scene, camera);
+      feedback.style.display = 'block';
+      const btnCont = document.getElementById('btnContinueGame');
+      btnCont.style.display = 'inline-block';
+      btnCont.onclick = () => {
+        document.getElementById('quizModal').style.display = 'none';
+        gameState.isQuizActive = false;
+        setMobileControlsVisible(true);
+      };
     }
+
+    /* HUD & SCREEN MODALS */
+    function updateHud() {
+      document.getElementById('hudScore').innerText = gameState.score;
+      document.getElementById('hudLives').innerText = gameState.lives;
+      document.getElementById('hudStudentName').innerText = studentData.name || 'Klik Menu';
+      document.getElementById('hudStudentClass').innerText = studentData.className ? `Kelas: ${studentData.className}` : 'Kelas: -';
+
+      document.getElementById('menuDisplayStudent').innerText = studentData.name || 'Belum diisi';
+      document.getElementById('menuDisplayClass').innerText = studentData.className || '-';
+    }
+
+    function showWinScreen() {
+      gameState.isQuizActive = true;
+      setMobileControlsVisible(false);
+      document.getElementById('winStudentName').innerText = studentData.name;
+      document.getElementById('winScore').innerText = gameState.score;
+      document.getElementById('winTime').innerText = `${totalElapsedTime}s`;
+      document.getElementById('winModal').style.display = 'flex';
+      sendDataToSpreadsheet(`Lolos Level ${currentLevel}`);
+    }
+
+    function showGameOver() {
+      gameState.isQuizActive = true;
+      setMobileControlsVisible(false);
+      document.getElementById('gameOverModal').style.display = 'flex';
+      sendDataToSpreadsheet(`Game Over Level ${currentLevel}`);
+    }
+
+    /* MENU NAVIGATION LISTENERS */
+    const mainMenuModal = document.getElementById('mainMenuModal');
+    const pauseMenuModal = document.getElementById('pauseMenuModal');
+    const studentModal = document.getElementById('studentModal');
+    const leaderboardModal = document.getElementById('leaderboardModal');
+
+    document.getElementById('btnStartGame').addEventListener('click', () => {
+      if (!studentData.name) {
+        studentModal.style.display = 'flex';
+        setMobileControlsVisible(false);
+        return;
+      }
+      mainMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+      startTimer();
+    });
+
+    document.getElementById('btnMenuLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
+
+    document.getElementById('btnChangeStudent').addEventListener('click', () => {
+      document.getElementById('inputStudentName').value = studentData.name;
+      document.getElementById('inputStudentClass').value = studentData.className;
+      studentModal.style.display = 'flex';
+      setMobileControlsVisible(false);
+    });
+
+    document.getElementById('btnSaveStudent').addEventListener('click', () => {
+      const name = document.getElementById('inputStudentName').value.trim();
+      const cls = document.getElementById('inputStudentClass').value.trim();
+      if (!name) return alert("Mohon masukkan nama siswa!");
+
+      studentData.name = name;
+      studentData.className = cls || "VII";
+      localStorage.setItem('scratch_student_name', studentData.name);
+      localStorage.setItem('scratch_student_class', studentData.className);
+
+      studentModal.style.display = 'none';
+      mainMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+      updateHud();
+      startTimer();
+      sendDataToSpreadsheet("Login");
+      showToast(`Selamat bermain, ${studentData.name}!`);
+    });
+
+    document.getElementById('btnCancelStudent').addEventListener('click', () => {
+      studentModal.style.display = 'none';
+      if (!gameState.isPaused && studentData.name) {
+        setMobileControlsVisible(true);
+      }
+    });
+
+    document.getElementById('btnOpenInGameMenu').addEventListener('click', () => {
+      gameState.isPaused = true;
+      setMobileControlsVisible(false);
+      pauseMenuModal.style.display = 'flex';
+    });
+
+    document.getElementById('btnResumeGame').addEventListener('click', () => {
+      pauseMenuModal.style.display = 'none';
+      gameState.isPaused = false;
+      setMobileControlsVisible(true);
+    });
+
+    document.getElementById('btnPauseLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
+
+    document.getElementById('btnReturnToMainMenu').addEventListener('click', () => {
+      pauseMenuModal.style.display = 'none';
+      mainMenuModal.style.display = 'flex';
+      gameState.isPaused = true;
+      setMobileControlsVisible(false);
+    });
+
+    document.getElementById('btnCloseLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'none';
+      if (!gameState.isPaused && !gameState.isQuizActive && studentData.name && mainMenuModal.style.display === 'none') {
+        setMobileControlsVisible(true);
+      }
+    });
+
+    document.getElementById('btnWinLeaderboard').addEventListener('click', () => {
+      leaderboardModal.style.display = 'flex';
+      fetchAllLeaderboard();
+    });
 
     document.getElementById('btnNextLevel').addEventListener('click', () => {
       document.getElementById('winModal').style.display = 'none';
       gameState.isQuizActive = false;
-      loadLevel(currentLevel < 5 ? currentLevel + 1 : 1);
+      setMobileControlsVisible(true);
+      const nextLvl = currentLevel < 5 ? currentLevel + 1 : 1;
+      loadLevel(nextLvl);
+    });
+
+    document.getElementById('btnRestartLevel').addEventListener('click', () => {
+      document.getElementById('gameOverModal').style.display = 'none';
+      gameState.lives = 3;
+      gameState.isQuizActive = false;
+      setMobileControlsVisible(true);
+      updateHud();
+      loadLevel(currentLevel);
     });
 
     window.addEventListener('resize', () => {
@@ -639,14 +1437,18 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+    /* ANIMATION LOOP */
+    function animate(currentTime) {
+      requestAnimationFrame(animate);
+      const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
+      lastTime = currentTime;
+
+      updatePhysics(dt);
+      renderer.render(scene, camera);
+    }
+
     loadLevel(1);
     updateHud();
-    if (!studentData.name) {
-      openStudentModal();
-    } else {
-      document.getElementById('studentModal').style.display = 'none';
-      startTimer();
-    }
     requestAnimationFrame(animate);
   </script>
 </body>
